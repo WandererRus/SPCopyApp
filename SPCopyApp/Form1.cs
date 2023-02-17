@@ -37,7 +37,7 @@ namespace SPCopyApp
         {
             FileStream fsopen = new FileStream(tb_originPath.Text, FileMode.Open);
             FileStream fswrite = new FileStream(tb_targetPath.Text, FileMode.OpenOrCreate);
-            int b;
+            byte[] b;
             long lengthfile = fsopen.Length;
             int countOperation = 3;
             int[] partsfilelength = new int[countOperation];            
@@ -48,10 +48,12 @@ namespace SPCopyApp
                     partsfilelength[i] += (int)lengthfile % countOperation;
             }
 
-            while ((b = fsopen.ReadByte()) != -1)
+            foreach (int i in partsfilelength)
             {
-                fswrite.WriteByte((byte)b);
-            }            
+                b = new byte[i];
+                fsopen.Read(b, 0, b.Length);
+            }
+                       
             fsopen.Close();            
             fswrite.Close();
         }
