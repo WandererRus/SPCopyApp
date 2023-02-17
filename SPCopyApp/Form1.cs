@@ -39,7 +39,6 @@ namespace SPCopyApp
             FileStream fswrite = new FileStream(tb_targetPath.Text, FileMode.OpenOrCreate);
             byte[] b;
             long lengthfile = fsopen.Length;
-
             pb_copyProgress.Maximum = 1000;
             pb_copyProgress.Minimum = 0;
             int countOperation = 100;
@@ -50,15 +49,16 @@ namespace SPCopyApp
                 if( i == countOperation - 1)
                     partsfilelength[i] += lengthfile % countOperation;
             }
-            long pbvalue = lengthfile / 1000;
+            long pbvalue = 1;
+            if (lengthfile > 1000)
+                pbvalue = lengthfile / 1000;           
             foreach (long i in partsfilelength)
             {
                 b = new byte[i];
                 fsopen.Read(b, 0, b.Length);
                 fswrite.Write(b, 0, b.Length);                
                 pb_copyProgress.Value = (int)(lengthfile / pbvalue); 
-            }
-                       
+            }                       
             fsopen.Close();            
             fswrite.Close();
         }
