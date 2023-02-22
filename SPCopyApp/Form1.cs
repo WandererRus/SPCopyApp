@@ -62,9 +62,11 @@ namespace SPCopyApp
             if (lengthfile > 1000)
                 pbvalue = lengthfile / 1000;
 
-            data = new byte[partsfilelength[0]];
-            fsopen.BeginRead(data, 0, data.Length, MessageBoxPrint, fsopen);
-
+            for (int i = 0; i < 3;i++)
+            { 
+                data = new byte[partsfilelength[i]];
+                fsopen.BeginRead(data, 0, data.Length, MessageBoxPrint, fsopen);
+            }
             /*IAsyncResult result; Примеры не эффективной обработки асинхронных запросов              
             result = fsopen.BeginRead(b, 0, b.Length, null , null);
             /*while (!result.IsCompleted) // проверка выполнения fsopen.BeginRead. 
