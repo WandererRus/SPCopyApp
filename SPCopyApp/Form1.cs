@@ -1,7 +1,11 @@
-﻿namespace SPCopyApp
+﻿using System.Text;
+
+namespace SPCopyApp
 {
     public partial class Form1 : Form
     {
+        byte[] data;
+
         public Form1()
         {
             InitializeComponent();
@@ -33,12 +37,11 @@
 
         }
 
-        private async void btn_start_Click(object sender, EventArgs e)
+        private void btn_start_Click(object sender, EventArgs e)
         {
             /* Объявления переменных и открытие потоков */
             FileStream fsopen = new FileStream(tb_originPath.Text, FileMode.Open, FileAccess.Read, FileShare.Read, 100, FileOptions.Asynchronous);
             FileStream fswrite = new FileStream(tb_targetPath.Text, FileMode.OpenOrCreate);
-            byte[] b;
             long lengthfile = fsopen.Length;    
 
             //  Устанавливаем начальные значения прогресс бара         
@@ -46,7 +49,7 @@
             pb_copyProgress.Minimum = 0;
 
             // создаем массив чтения файла из countOperation частей
-            int countOperation = 100000;
+            int countOperation = 1000000;
             long[] partsfilelength = new long[countOperation];
             for (int i = 0; i < countOperation; i++)
             {
@@ -59,20 +62,23 @@
             if (lengthfile > 1000)
                 pbvalue = lengthfile / 1000;
 
-            b = new byte[partsfilelength[0]];
-            IAsyncResult result;
-            result = fsopen.BeginRead(b, 0, b.Length, null , null);
+            data = new byte[partsfilelength[0]];
+            fsopen.BeginRead(data, 0, data.Length, MessageBoxPrint, fsopen);
 
+            /*IAsyncResult result; Примеры не эффективной обработки асинхронных запросов              
+            result = fsopen.BeginRead(b, 0, b.Length, null , null);
             /*while (!result.IsCompleted) // проверка выполнения fsopen.BeginRead. 
              // Асинхронная операция не возвращает готовый результат, пока не выполнит все операции.
              // А запрос к результатам мы можем попробовать сделать раньше выполнения и это вызовет ошибку.
             {
                 richTextBox1.Text = "Еще не готово";
+                Thread.Sleep(20);
             }*/
-
-
-
-
+            /*while (!result.AsyncWaitHandle.WaitOne(20))
+            {
+                richTextBox1.Text = "Еще не готово";
+            }*/
+            //fsopen.EndRead(result);*/
             /*foreach (byte bt in b)
             {
                 richTextBox1.Text += bt;
@@ -90,6 +96,14 @@
             fsopen.Close();            
             fswrite.Close();
         }
-        
+
+
+        void MessageBoxPrint(IAsyncResult asyncResult)
+        {
+            FileStream fileStream = (FileStream)asyncResult.AsyncState;
+            fileStream.EndRead(asyncResult);
+            string res = Encoding.UTF8.GetString(data);            
+            MessageBox.Show(res);
+        }
     }
 }
