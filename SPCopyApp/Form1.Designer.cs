@@ -39,6 +39,7 @@
             this.ofd_originPath = new System.Windows.Forms.OpenFileDialog();
             this.btn_openFile = new System.Windows.Forms.Button();
             this.btn_saveFile = new System.Windows.Forms.Button();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -110,7 +111,7 @@
             // btn_start
             // 
             this.btn_start.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_start.Location = new System.Drawing.Point(314, 250);
+            this.btn_start.Location = new System.Drawing.Point(312, 196);
             this.btn_start.Name = "btn_start";
             this.btn_start.Size = new System.Drawing.Size(157, 47);
             this.btn_start.TabIndex = 6;
@@ -149,11 +150,20 @@
             this.btn_saveFile.UseVisualStyleBackColor = true;
             this.btn_saveFile.Click += new System.EventHandler(this.btn_saveFile_Click);
             // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Location = new System.Drawing.Point(20, 259);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.Size = new System.Drawing.Size(768, 150);
+            this.richTextBox1.TabIndex = 10;
+            this.richTextBox1.Text = "";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.btn_saveFile);
             this.Controls.Add(this.btn_openFile);
             this.Controls.Add(this.pb_copyProgress);
@@ -185,5 +195,6 @@
         private OpenFileDialog ofd_originPath;
         private Button btn_openFile;
         private Button btn_saveFile;
+        private RichTextBox richTextBox1;
     }
 }
