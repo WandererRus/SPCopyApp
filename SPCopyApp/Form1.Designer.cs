@@ -191,10 +191,10 @@
         private Label label3;
         private ComboBox cb_threads;
         private Button btn_start;
-        private ProgressBar pb_copyProgress;
         private OpenFileDialog ofd_originPath;
         private Button btn_openFile;
         private Button btn_saveFile;
         private RichTextBox richTextBox1;
+        public ProgressBar pb_copyProgress;
     }
 }
