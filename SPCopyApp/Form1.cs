@@ -49,7 +49,7 @@ namespace SPCopyApp
             pb_copyProgress.Minimum = 0;
 
             // создаем массив чтения файла из countOperation частей
-            int countOperation = 1000000;
+            int countOperation = 1000000; // количество частей на которые разбивается длина файла
             long[] partsfilelength = new long[countOperation];
             for (int i = 0; i < countOperation; i++)
             {
