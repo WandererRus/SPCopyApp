@@ -1,11 +1,17 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Threading;
 
 namespace SPCopyApp
 {
     public partial class Form1 : Form
     {
+        DirectoryInfo Info = new DirectoryInfo("D:\\Илья");
+        
         byte[] data;
         long lengthfile;
+        Thread threads[];
+        bool abort = false;
+        bool suspend = false;
         public Form1()
         {
             InitializeComponent();
@@ -20,6 +26,9 @@ namespace SPCopyApp
         {
             tb_originPath.Text = @"D:\text.txt";
             tb_targetPath.Text = @"D:\textcopy.txt";
+
+            Info.GetDirectories(); // получение папок в текущей директории
+            Info.GetFiles();// получение файлов в текущей директории
         }
 
         private void btn_openFile_Click(object sender, EventArgs e)
@@ -39,36 +48,43 @@ namespace SPCopyApp
 
         private void btn_start_Click(object sender, EventArgs e)
         {
+            
             /* Объявления переменных и открытие потоков */
             FileStream fsopen = new FileStream(tb_originPath.Text, FileMode.Open, FileAccess.Read, FileShare.Read, 100, FileOptions.Asynchronous);
-            lengthfile = fsopen.Length;               
-            
+            lengthfile = fsopen.Length;
+
 
             // создаем массив чтения файла из countOperation частей
             int countOperation = Int32.Parse(cb_threads.Items[cb_threads.SelectedIndex].ToString()); // количество частей на которые разбивается длина файла
-
+            ThreadPool.SetMaxThreads(countOperation, countOperation);
+            
+            ThreadPool.QueueUserWorkItem(MessageBoxPrint, new MyStateObject(data, fsopen, tb_targetPath.Text, pos)); // пример работы через пул потоков
             //  Устанавливаем начальные значения прогресс бара         
             pb_copyProgress.Maximum = countOperation;
             pb_copyProgress.Minimum = 0;
-
+            threads[] = new ParameterizedThreadStart(StartRead); // создание массива потоков
             long[] partsfilelength = new long[countOperation];
             for (int i = 0; i < countOperation; i++)
             {
                 partsfilelength[i] = lengthfile / countOperation;
-                if( i == countOperation - 1)
+                if (i == countOperation - 1)
                     partsfilelength[i] += lengthfile % countOperation;
             }
             //  Устанавливаем значения прогресс бара      
             TestDel test = testing;
 
             for (int i = 0; i < countOperation; i++)
-            {                
+            {
                 data = new byte[partsfilelength[i]];
                 int pos = data.Length * i;
-                fsopen.BeginRead(data, 0, data.Length, MessageBoxPrint, new MyStateObject(data,fsopen, tb_targetPath.Text, pos));
-
+                //fsopen.BeginRead(data, 0, data.Length, MessageBoxPrint, new MyStateObject(data, fsopen, tb_targetPath.Text, pos));
+                ParameterizedThreadStart threadStart = new ParameterizedThreadStart(StartRead);
+                Thread thread = new Thread(threadStart);
+                thread.Start(new MyStateObject(data, fsopen, tb_targetPath.Text, pos));
+                thread.Suspend(); // приостановка потока
+                thread.Resume();// возобновление потока
+                thread.Abort(); // отмена работы потока
                 pb_copyProgress.EndInvoke(pb_copyProgress.BeginInvoke(testing));
-                
             }
 
 
@@ -100,12 +116,18 @@ namespace SPCopyApp
                  //fswrite.Write(b, 0, b.Length);                
                  //pb_copyProgress.Value = (int)(lengthfile / pbvalue); 
              }      */
-            fsopen.Close();            
+            fsopen.Close();
         }
 
-
+        static void StartRead(object mystate)
+        {
+            MyStateObject myobj = (MyStateObject)mystate;
+            myobj.BeginRead();
+        }
         void MessageBoxPrint(IAsyncResult asyncResult)
         {
+            if (abort = true) // если отмена то пропускать
+            { }
             MyStateObject mystate = (MyStateObject)asyncResult.AsyncState;
             mystate.EndRead(asyncResult);
             mystate.Write();
@@ -115,7 +137,7 @@ namespace SPCopyApp
         delegate void TestDel();
 
 
-        void testing() 
+        void testing()
         {
             pb_copyProgress.Value++;
         }
@@ -128,12 +150,16 @@ namespace SPCopyApp
         FileStream _fs;
         FileStream _fswrite;
 
-        public MyStateObject(byte[] bytes, FileStream fs, string path, int position) 
+        public MyStateObject(byte[] bytes, FileStream fs, string path, int position)
         {
-            _bytes = bytes; 
+            _bytes = bytes;
             _fs = fs;
             _fswrite = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write, 100, FileOptions.Asynchronous);
             _fswrite.Position = position;
+        }
+        public void BeginRead()
+        {
+            _fs.BeginRead(data, 0, data.Length, MessageBoxPrint, this);
         }
         public void EndRead(IAsyncResult asyncResult)
         {
@@ -146,11 +172,11 @@ namespace SPCopyApp
 
         }
 
-        private void CloseWrite(IAsyncResult asyncResult) 
+        private void CloseWrite(IAsyncResult asyncResult)
         {
             FileStream stream = (FileStream)asyncResult.AsyncState;
             stream.EndWrite(asyncResult);
-            
+
             _fswrite.Close();
         }
     }
